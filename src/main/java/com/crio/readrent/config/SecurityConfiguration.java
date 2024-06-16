@@ -1,6 +1,5 @@
 package com.crio.readrent.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -11,28 +10,34 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.crio.readrent.entities.UserRole;
+import com.crio.readrent.services.UserService;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-    @Autowired
+    
     private UserDetailsService userService;
+    private PasswordEncoder passwordEncoder;
 
+     public SecurityConfiguration(UserService userService, PasswordEncoder passwordEncoder) {
+        this.userService = userService;
+        this.passwordEncoder=passwordEncoder;
+    }
     @Bean
     public SecurityFilterChain configureSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/users/login", "/users/register", "/login", "/static/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/books").hasAuthority("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/books/{id}").hasAuthority("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/books/{id}").hasAuthority("ADMIN")
-                .anyRequest().authenticated())
+        return  httpSecurity.authorizeHttpRequests(configure -> configure
+                .requestMatchers("/user/login", "/user/register")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, "/books").hasAuthority(UserRole.ADMIN.name())
+                .requestMatchers(HttpMethod.PUT, "/books/{id}").hasAuthority(UserRole.ADMIN.name())
+                .requestMatchers(HttpMethod.DELETE, "/books/{id}").hasAuthority(UserRole.ADMIN.name())
+                .anyRequest()
+                .authenticated())
             .formLogin(form -> form
                 .loginPage("/login")
                 .permitAll()
@@ -41,9 +46,8 @@ public class SecurityConfiguration {
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
-                .permitAll());
+                .permitAll()).build();
 
-        return httpSecurity.build();
     }
 
     @Bean
@@ -55,12 +59,8 @@ public class SecurityConfiguration {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }
+   

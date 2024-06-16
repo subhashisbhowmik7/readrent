@@ -14,7 +14,6 @@ import com.crio.readrent.exceptions.RentalNotFoundException;
 import com.crio.readrent.repositories.BookRepository;
 import com.crio.readrent.repositories.RentalRepository;
 import com.crio.readrent.repositories.UserRepository;
-
 @Service
 public class RentalService {
 
@@ -64,9 +63,7 @@ public class RentalService {
         
         rentalRepository.save(rental);
 
-        
         book.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
         bookRepository.save(book);
     }
 }
-
