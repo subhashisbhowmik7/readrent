@@ -32,7 +32,7 @@ public class RentalService {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email);
 
-        List<Rental> activeRentals = rentalRepository.findActiveRentalsByUserId(user.getUserId());
+        List<Rental> activeRentals = rentalRepository.findByUser(user);
         if (activeRentals.size() >= 2) {
             throw new RentalLimitExceedException("User cannot have more than two active rentals.");
         }
@@ -56,14 +56,15 @@ public class RentalService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         User user = userRepository.findByEmail(email);
+        Book book = bookRepository.findById(bookId)
+            .orElseThrow(() -> new BookNotFoundException("Book not found with id " + bookId));
 
-        Rental rental = rentalRepository.findByUserIdAndBookIdAndReturnDateIsNull(user.getUserId(), bookId)
+        Rental rental = rentalRepository.findByUserAndBook(user, book)
             .orElseThrow(() -> new RentalNotFoundException("Rental not found for book id " + bookId + " and user id " + user.getUserId()));
         
         rentalRepository.save(rental);
 
-        Book book = bookRepository.findById(bookId)
-            .orElseThrow(() -> new BookNotFoundException("Book not found with id " + bookId));
+        
         book.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
         bookRepository.save(book);
     }

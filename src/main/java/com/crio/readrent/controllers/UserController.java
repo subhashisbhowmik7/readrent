@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.crio.readrent.dtos.LoginRequest;
 import com.crio.readrent.entities.User;
-import com.crio.readrent.services.UserService;
+import com.crio.readrent.services.*;
 
  @RestController
 @RequestMapping("/users")
