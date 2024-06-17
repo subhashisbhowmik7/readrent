@@ -22,7 +22,7 @@ public class SecurityConfiguration {
 
     
     private UserDetailsService userService;
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoder  passwordEncoder;
 
      public SecurityConfiguration(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
@@ -47,6 +47,24 @@ public class SecurityConfiguration {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
                 .permitAll()).build();
+
+
+
+                // http
+                // .csrf(AbstractHttpConfigurer::disable)
+                // .authorizeHttpRequests(
+                //         req->req.requestMatchers("/login/**","/register/**", "/refresh_token/**")
+                //                 .permitAll()
+                //                 .requestMatchers("/admin_only/**").hasAuthority("ADMIN")
+                //                 .anyRequest()
+                //                 .authenticated()
+                // ).logout(l->l
+                //         .logoutUrl("/logout")
+                //         .addLogoutHandler(logoutHandler)
+                //         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()
+                //         ))
+                // .build();
+
 
     }
 
