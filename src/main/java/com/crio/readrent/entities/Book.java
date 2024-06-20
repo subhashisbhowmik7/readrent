@@ -1,32 +1,53 @@
 package com.crio.readrent.entities;
 
+import java.util.Set;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 
 @Entity
-@Table(name = "books")
+@Table(name = "book")
 @AllArgsConstructor
 @Data
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long bookId;
+    private Long id;
 
     @Column(nullable = false)
     private String title;
 
     @Column(nullable = false)
-    private String author;
 
-    public Long getBookId() {
-        return this.bookId;
+    public Long getId() {
+        return this.id;
     }
 
-    public void setBookId(Long bookId) {
-        this.bookId = bookId;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Set<Rental> getRentals() {
+        return this.rentals;
+    }
+
+    public void setRentals(Set<Rental> rentals) {
+        this.rentals = rentals;
+    }
+    private String author;
+
+    @OneToMany(mappedBy = "book")
+    private Set<Rental> rentals;
+    
+    public Long getBookId() {
+        return this.id;
+    }
+
+    public void setBookId(Long id) {
+        this.id = id;
     }
 
     public String getTitle() {

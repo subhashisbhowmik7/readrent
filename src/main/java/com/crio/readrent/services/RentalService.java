@@ -1,19 +1,14 @@
 package com.crio.readrent.services;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.crio.readrent.entities.*;
 import com.crio.readrent.exceptions.BookNotFoundException;
-import com.crio.readrent.exceptions.RentalLimitExceedException;
-import com.crio.readrent.exceptions.RentalNotFoundException;
 import com.crio.readrent.repositories.BookRepository;
 import com.crio.readrent.repositories.RentalRepository;
 import com.crio.readrent.repositories.UserRepository;
+
 @Service
 public class RentalService {
 
@@ -21,49 +16,46 @@ public class RentalService {
     private RentalRepository rentalRepository;
 
     @Autowired
-    private BookRepository bookRepository;
-
-    @Autowired
     private UserRepository userRepository;
 
-    public void rentBook(Long bookId) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email);
+    @Autowired
+    private BookRepository bookRepository;
 
-        List<Rental> activeRentals = rentalRepository.findByUser(user);
-        if (activeRentals.size() >= 2) {
-            throw new RentalLimitExceedException("User cannot have more than two active rentals.");
+    public Rental rentBook(Long bookId, Long userId) {
+        if (rentalRepository.countByUserId(userId) >= 2) {
+            throw new IllegalArgumentException("User cannot rent more than two books.");
         }
 
         Book book = bookRepository.findById(bookId)
-            .orElseThrow(() -> new BookNotFoundException("Book not found with id " + bookId));
-        if (book.getAvailabilityStatus() == AvailabilityStatus.RENTED) {
-            throw new Exception("Book is already rented.");
+                .orElseThrow(() -> new BookNotFoundException("Book not found for this id :: " + bookId));
+
+        if (book.getAvailabilityStatus().equals(AvailabilityStatus.NOT_AVAILABLE)) {
+            throw new IllegalArgumentException("Book is not available for rent.");
         }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BookNotFoundException("User not found for this id :: " + userId));
+
+        book.setAvailabilityStatus(AvailabilityStatus.NOT_AVAILABLE);
+        bookRepository.save(book);
 
         Rental rental = new Rental();
         rental.setBook(book);
         rental.setUser(user);
-        rentalRepository.save(rental);
 
-        book.setAvailabilityStatus(AvailabilityStatus.RENTED);
-        bookRepository.save(book);
+        return rentalRepository.save(rental);
     }
 
-    public void returnBook(Long bookId) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email);
-        Book book = bookRepository.findById(bookId)
-            .orElseThrow(() -> new BookNotFoundException("Book not found with id " + bookId));
+    public Rental returnBook(Long bookId, Long userId) {
+        Rental rental = rentalRepository.findByBookIdAndUserId(bookId, userId)
+                .orElseThrow(() -> new BookNotFoundException("Rental not found for this book id and user id"));
 
-        Rental rental = rentalRepository.findByUserAndBook(user, book)
-            .orElseThrow(() -> new RentalNotFoundException("Rental not found for book id " + bookId + " and user id " + user.getUserId()));
-        
-        rentalRepository.save(rental);
+        rentalRepository.delete(rental);
 
+        Book book = rental.getBook();
         book.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
         bookRepository.save(book);
+
+        return rental;
     }
 }

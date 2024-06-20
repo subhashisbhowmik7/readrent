@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +19,7 @@ import com.crio.readrent.services.BookService;
 
 
 
+
 @RestController
 @RequestMapping("/books")
 public class BookController {
@@ -27,30 +27,24 @@ public class BookController {
     @Autowired
     private BookService bookService;
 
+    @PostMapping
+    public ResponseEntity<Book> addBook(@RequestBody Book book) {
+        return ResponseEntity.status(201).body(bookService.addBook(book));
+    }
+
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books = bookService.getAllBooks();
-        return new ResponseEntity<>(books, HttpStatus.OK);
+        return ResponseEntity.ok(bookService.getAllBooks());
     }
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Book> addBook(@RequestBody Book book) {
-        Book addedBook = bookService.addBook(book);
-        return new ResponseEntity<>(addedBook, HttpStatus.CREATED);
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book bookDetails) {
+        return ResponseEntity.ok(bookService.updateBook(id, bookDetails));
     }
 
-    @PutMapping("/{bookId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Book> updateBook(@PathVariable Long bookId, @RequestBody Book book) {
-        Book updatedBook = bookService.updateBook(bookId, book);
-        return new ResponseEntity<>(updatedBook, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/{bookId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long bookId) {
-        bookService.deleteBook(bookId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return ResponseEntity.noContent().build();
     }
 }

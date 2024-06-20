@@ -9,16 +9,26 @@ import jakarta.persistence.*;
 public class Rental {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long rentalId;
+    private Long id;
 
-    public Long getRentalId() {
-        return this.rentalId;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+    
+    @ManyToOne
+    @JoinColumn(name = "book_id")
+    private Book book;
+
+
+    public Long getId() {
+        return this.id;
     }
 
-    public void setRentalId(Long rentalId) {
-        this.rentalId = rentalId;
+    public void setId(Long id) {
+        this.id = id;
     }
-
+   
+    
     public User getUser() {
         return this.user;
     }
@@ -34,11 +44,5 @@ public class Rental {
     public void setBook(Book book) {
         this.book = book;
     }
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-    @ManyToOne
-    @JoinColumn(name = "book_id")
-    private Book book;
 
 }
