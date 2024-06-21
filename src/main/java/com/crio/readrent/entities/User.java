@@ -17,12 +17,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
 
 
 @Entity
 @Data
 @Table(name = "user")
+@Builder
 public class User implements UserDetails {
 
     @Id
@@ -85,7 +87,7 @@ public class User implements UserDetails {
         return this.password;
     }
 
-    public void setPassword(String password) {  ///hmmmm
+    public void setPassword(String password) {  
         this.password = password;
     }
 
